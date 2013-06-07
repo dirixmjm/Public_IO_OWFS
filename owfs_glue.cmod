@@ -1,0 +1,59 @@
+/*
+ * Copyright (c) 2010 Marc Dirix <marc@dirix.nu>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#include <owcapi.h>
+#include "util.h"
+#include <errno.h>
+typedef unsigned char uchar;
+DECLARATIONS 
+
+PIKEFUN void low_init(string config)
+{
+   int res=0; 
+   if(res=OW_init(config->str) < 0 )
+      Pike_error("OW_init: Return error (%d)\n",res);
+   pop_n_elems(args);
+
+}
+
+PIKEFUN void low_finish()
+{
+   OW_finish();
+}
+
+EXIT
+{ OW_finish();
+}
+
+PIKEFUN string low_get(string path)
+{
+   char *dir_buffer = NULL;
+   size_t dir_length;
+   if( OW_get(path->str, &dir_buffer, &dir_length) < 0 )
+      Pike_error("OW_get: Returned error (%d)\n",errno);
+   pop_n_elems(args);
+   push_string(make_shared_binary_string(dir_buffer,dir_length));
+   free(dir_buffer);
+}
+
+PIKEFUN void low_put(string path, string value)
+{
+   char *dir_buffer = NULL;
+   size_t dir_length;
+   if( OW_put(path->str, value->str, strlen(value->str)) < 0 )
+      Pike_error("OW_put: Returned error (%d)\n",errno);
+   pop_n_elems(args);
+}

@@ -1,0 +1,113 @@
+/*
+ * Copyright (c) 2010 Marc Dirix <marc@.dirix.nu>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#pike __REAL_VERSION__
+
+inherit @module@;
+
+protected class _Traversion 
+{
+   string path;
+   array(string) files;
+
+   object current;
+   int(0..) pos;
+   function(array:array) sort_fun;
+   constant is_traversion = 1;
+    
+   void create( string _path, void|function(array:array) _sort_fun)
+   {
+       path = _path;
+       if(path[-1]!='/') path+="/";
+       files = low_get( path ) / ",";
+       sort_fun = _sort_fun;
+       if(sort_fun)
+          files = sort_fun(files);
+       if(sizeof(files)) set_current(); 
+   }
+
+   protected void set_current() 
+   {
+       if(!has_suffix(files[pos],"/")) 
+         return;
+      current = _Traversion(path + files[pos], sort_fun);
+  }
+  
+  int `!() {
+    if( pos >= (int(0..)) sizeof(files) ) return 1;
+    return 0;
+  }
+  
+  int add(int steps) {
+    if(current && current->is_traversion)
+      steps = current->add(steps);
+    if(!steps) return 0;
+    pos += steps;
+    if( pos >= sizeof(files) )
+      return pos - sizeof(files) + 1;
+    set_current();
+    return 0;
+  }
+
+  void `+=(int steps) {
+    if (steps < 0) error ("Cannot step backwards.\n");
+    add(steps);
+  }
+
+  string index() {
+    if(current && current->is_traversion)
+      return current->index();
+    if( pos >= sizeof(files) ) return UNDEFINED;
+       return path;
+  }
+
+  string value() {
+    if(current && current->is_traversion)
+      return current->value();
+    if( pos >= sizeof(files) ) return UNDEFINED;
+      return files[pos];
+  }
+}
+
+class _OWFS
+{
+   void create()
+   {
+   }
+
+   _Traversion Traversion(string path, function(array:array) _sort_func)
+   {
+      return _Traversion(path, _sort_func);
+   }
+
+   string read( string path )
+   {
+      return low_get(path);
+   }
+   
+   void write( string path, string|int value )
+   {
+      low_put( path, (string) value );
+   }
+   
+}
+
+_OWFS `()(string port)
+{
+   low_init(port);
+   return _OWFS();
+}
+

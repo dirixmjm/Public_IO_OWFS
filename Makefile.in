@@ -1,0 +1,14 @@
+@make_variables@
+VPATH=@srcdir@
+OBJS=owfs_glue.o
+MODULE_LDFLAGS=@LDFLAGS@ @LIBS@
+CONFIG_HEADERS=@CONFIG_HEADERS@
+MODDIR=Public.pmod/IO.pmod/
+MODNAME=OWFS
+MODULE_PMOD_IN=module.pmod.in
+
+@dynamic_module_makefile@
+
+owfs_glue.o: $(SRCDIR)/owfs_glue.c
+
+@dependencies@

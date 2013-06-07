@@ -1,0 +1,4 @@
+
+OWFS.
+
+This module provides a way to interface the OneWire Filesystem with Pike.
